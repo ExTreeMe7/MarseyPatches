@@ -28,6 +28,7 @@ Raw executable DLL samples and full decompiled source trees are not tracked in g
 - Reports/source_inventory.csv - sanitized inventory with relative sample paths, assembly metadata, sizes, and hashes.
 - Reports/dll_copy_map.csv - relative mapping from original sample name to the local DLL workspace layout.
 - Reports/decompiled_copy_map.csv - relative mapping to decompiled project names from the private analysis workspace.
+- Reports/deep_review_notes.csv - additional focused review notes for selected samples.
 - Reports/duplicate_hash_groups.csv - duplicate analysis grouped by SHA256.
 - Reports/external_commits.csv - selected recent commits from related public repositories.
 - Reports/external_forks.csv - fork comparison notes for related public repositories.
@@ -73,41 +74,60 @@ Server-side signals worth monitoring at a high level:
 
 Static analysis can miss packed, obfuscated, staged, or environment-dependent behavior. Absence of a hit does not prove a file is safe. Some entries are third-party dependencies and should not be blocked only by name without context.
 
+File names are not stable indicators. Different builds may use the same DLL name while having different behavior. Prefer SHA256, assembly metadata, static strings, and behavior notes when comparing reports.
+
 ## External Repository References
 
-Related public repositories were reviewed for defensive context, fork tracking, and commit history. These references are not endorsements and should be treated as untrusted research material.
+Related public repositories were reviewed for defensive context, fork tracking, recursive fork discovery, and commit history. These references are not endorsements and should be treated as untrusted research material.
 
-Collection date: `2026-06-10`.
+Collection date: 2026-06-10.
 
-| Repository | Defensive relevance | Latest observed commit | Fork status |
+Graph summary:
+
+- repositories recorded: 21;
+- fork edges recorded: 14;
+- recent commit records: 84;
+- recursive depth observed: 2.
+
+### Seed And Root Repositories
+
+| Repository | Defensive relevance | Latest observed commit | Fork/source status |
 |---|---|---|---|
-| [Androclast/gemini.cc-decomp](https://github.com/Androclast/gemini.cc-decomp) | Decompiled Gemini/Kaban-family reference useful for static comparison against user-device malware and cheat composites. | `84ec05c` on `2026-06-05`: README update. | 1 direct fork observed; direct fork was identical at collection time. |
-| [noverd/ArabicaCliento](https://github.com/noverd/ArabicaCliento) | Modified SS14 client / patch framework reference useful for understanding Harmony/Subverter patch surfaces, overlays, and cheat-menu style patterns. | `3a22257` on `2025-07-15`: cheat-menu fix merge. | 11 direct forks observed; 2 had unique commits ahead of upstream. |
-| [ExTreeMe7/FurryAudioReconnect](https://github.com/ExTreeMe7/FurryAudioReconnect) | Benign compatibility reference for Marsey/Subverter patch structure, runtime initialization, Harmony usage, and OpenAL audio recovery logic. | `6abb322` on `2026-06-10`: initial release. | No direct forks observed at collection time. |
+| [Androclast/gemini.cc-decomp](https://github.com/Androclast/gemini.cc-decomp) | Gemini/Kaban-family decompiled reference | `84ec05c`: Update README.MD | parent: `-`; forks: `1` |
+| [Androclast/SS14.Transmog](https://github.com/Androclast/SS14.Transmog) | SS14 transmog/cosmetic patch reference | `bce52ab`: Non-descriptive update | parent: `-`; forks: `1` |
+| [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | Gemini/Kaban-family decompiled reference | `84ec05c`: Update README.MD | parent: `Androclast/gemini.cc-decomp`; forks: `0` |
+| [ddepsadd/MusyaBlueprints](https://github.com/ddepsadd/MusyaBlueprints) | Musya/FurryLoader blueprint or patch metadata reference | `8975f93`: New blueprint standards | parent: `-`; forks: `0` |
+| [ddepsadd/OpenHook](https://github.com/ddepsadd/OpenHook) | Hooking framework/reference repository | `30ea3e5`: Update README.md | parent: `-`; forks: `1` |
+| [ddepsadd/photoTroll](https://github.com/ddepsadd/photoTroll) | Unknown/utility reference requiring review | `b5fb060`: Initial commit | parent: `-`; forks: `0` |
+| [DobriyKaban/OpenHook](https://github.com/DobriyKaban/OpenHook) | Hooking framework/reference repository | `4b8baaf`: Update README.md | parent: `ddepsadd/OpenHook`; forks: `0` |
+| [DobriyKaban/SS14.Transmog](https://github.com/DobriyKaban/SS14.Transmog) | SS14 transmog/cosmetic patch reference | `bce52ab`: Non-descriptive update | parent: `Androclast/SS14.Transmog`; forks: `0` |
+| [ExTreeMe7/FurryAudioReconnect](https://github.com/ExTreeMe7/FurryAudioReconnect) | Benign SS14 OpenAL audio reconnect patch reference | `6abb322`: Initial release | parent: `-`; forks: `0` |
+| [noverd/ArabicaCliento](https://github.com/noverd/ArabicaCliento) | Modified SS14 client / patch framework reference | `3a22257`: Merge pull request #9 from noverd/cheatmenu_fix_2025-07-13 | parent: `-`; forks: `11` |
 
-### Fork Differences
+### Recursive Fork Graph
 
-| Fork | Parent | Status vs parent | Latest observed commit | Difference summary |
-|---|---|---|---|---|
-| [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | `Androclast/gemini.cc-decomp` | identical, `ahead=0`, `behind=0` | `84ec05c`, `2026-06-05` | No difference from parent at collection time. |
-| [lexaSvarshik/ArabicaCliento](https://github.com/lexaSvarshik/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=20` | `8b1969b`, `2024-11-24` | Old snapshot; no unique ahead commits relative to current upstream. |
-| [cheltyi/ArabicaCliento](https://github.com/cheltyi/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=16` | `96c39ad`, `2024-12-05` | Old snapshot near upstream performance-fix merge; no unique ahead commits. |
-| [hircani200/ArabicaCliento](https://github.com/hircani200/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=16` | `96c39ad`, `2024-12-05` | Old snapshot near upstream performance-fix merge; no unique ahead commits. |
-| [TerrariumCat/ArabicaCliento](https://github.com/TerrariumCat/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
-| [d0r11s1m0/ArabicaCliento](https://github.com/d0r11s1m0/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
-| [xsainteer/ArabicaCliento-xsainteer](https://github.com/xsainteer/ArabicaCliento-xsainteer) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
-| [kakih-user/ArabicaCliento](https://github.com/kakih-user/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
-| [LetBoss/s](https://github.com/LetBoss/s) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time; repository renamed to a short name. |
-| [AZERBAIJAN-TECH/AzerbicaCliento](https://github.com/AZERBAIJAN-TECH/AzerbicaCliento) | `noverd/ArabicaCliento` | ahead, `ahead=7`, `behind=0` | `7104efc`, `2026-02-04` | Forward fork: .NET 10/submodule update, workflow changes, branding/Discord rename, small overlay/UI/build file edits. |
-| [shepardzs/ArabicaCliento](https://github.com/shepardzs/ArabicaCliento) | `noverd/ArabicaCliento` | ahead, `ahead=2`, `behind=0` | `5d19412`, `2026-03-28` | Forward fork: MouseRotatorPatch behavior change plus release workflow edit. |
-| [voko421/AzerbicaCliento](https://github.com/voko421/AzerbicaCliento) | `AZERBAIJAN-TECH/AzerbicaCliento` | identical, `ahead=0`, `behind=0` | `7104efc`, `2026-02-04` | Nested fork of AzerbicaCliento; identical to parent at collection time. |
+| Fork | Parent | Depth | Compare status | Latest observed commit | Difference summary |
+|---|---|---|---|---|---|
+| [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | `Androclast/gemini.cc-decomp` | `0` | `identical`; ahead `0` / behind `0` | `84ec05c` | No difference from parent at collection time. |
+| [DobriyKaban/SS14.Transmog](https://github.com/DobriyKaban/SS14.Transmog) | `Androclast/SS14.Transmog` | `0` | `identical`; ahead `0` / behind `0` | `bce52ab` | No difference from parent at collection time. |
+| [DobriyKaban/OpenHook](https://github.com/DobriyKaban/OpenHook) | `ddepsadd/OpenHook` | `0` | `behind`; ahead `0` / behind `3` | `4b8baaf` | Old snapshot behind parent by 3 commits; no unique ahead commits. |
+| [AZERBAIJAN-TECH/AzerbicaCliento](https://github.com/AZERBAIJAN-TECH/AzerbicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `7` / behind `0` | `7104efc` | Forward fork ahead by 7 commits. Changed areas: .github; ArabicaCliento; ArabicaCliento.sln; build.sh; README.md; space-station-14 |
+| [cheltyi/ArabicaCliento](https://github.com/cheltyi/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `16` | `96c39ad` | Old snapshot behind parent by 16 commits; no unique ahead commits. |
+| [d0r11s1m0/ArabicaCliento](https://github.com/d0r11s1m0/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
+| [hircani200/ArabicaCliento](https://github.com/hircani200/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `16` | `96c39ad` | Old snapshot behind parent by 16 commits; no unique ahead commits. |
+| [kakih-user/ArabicaCliento](https://github.com/kakih-user/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
+| [LetBoss/s](https://github.com/LetBoss/s) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
+| [lexaSvarshik/ArabicaCliento](https://github.com/lexaSvarshik/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `20` | `8b1969b` | Old snapshot behind parent by 20 commits; no unique ahead commits. |
+| [shepardzs/ArabicaCliento](https://github.com/shepardzs/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `2` / behind `0` | `5d19412` | Forward fork ahead by 2 commits. Changed areas: .github; ArabicaCliento |
+| [TerrariumCat/ArabicaCliento](https://github.com/TerrariumCat/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
+| [xsainteer/ArabicaCliento-xsainteer](https://github.com/xsainteer/ArabicaCliento-xsainteer) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
+| [voko421/AzerbicaCliento](https://github.com/voko421/AzerbicaCliento) | `AZERBAIJAN-TECH/AzerbicaCliento` | `2` | `identical`; ahead `0` / behind `0` | `7104efc` | No difference from parent at collection time. |
 
 Detailed repository, fork, and commit data is also available in:
 
-- `Reports/external_repositories.csv`
-- `Reports/external_forks.csv`
-- `Reports/external_commits.csv`
-
+- Reports/external_repositories.csv
+- Reports/external_forks.csv
+- Reports/external_commits.csv
 ## Sample Matrix
 | Файл | User Verdict | Game/Server Risk | SHA256 | Декомпилят | Функции и алгоритм |
 |---|---|---|---|---|---|
@@ -115,9 +135,9 @@ Detailed repository, fork, and commit data is also available in:
 | `AdminPatch.dll` | Safe | Abuse: admin permission bypass | `5956B7ADACB5A80F8466B21500A12C6B372CB66FF751C2A09DE513C226A77EB2` | `AdminPatch__AdminPatch__5956B7AD` | Harmony-prefix принудительно возвращает `true` для `ClientAdminManager.CanCommand`, `CanScript`, `CanAdminMenu`, `CanAdminPlace`, `IsActive`; также подменяет описание сущности на админское. |
 | `AdminSliver.dll` | Safe | Abuse: mass admin actions/ahelp spam | `F8831DE1DF18C9A64EAF546E30D44556ECBC73D4F85739DAB4C0E23F8E3313AB` | `AdminSliver__AdminSliver__F8831DE1` | Набор команд `SlivBanAll`, `SlivKickAll`, `SlivKillAll`, `SlivAhelp`, `SlivPlayerList`; использует `AdminSystem`, консольные команды и ahelp/Bwoink для массового вреда. |
 | `AHelpBomber.dll` | Safe | Abuse: ahelp spam | `9940328D1EF70BB895350A51B1C05253253DA5C65BB7451DEC47851552D015CF` | `AHelpBomber__AhelpBomber__9940328D` | Команда `ahelpbomber` запускает цикл отправки сообщений в ahelp с задержкой около 10 мс через `BwoinkSystem.Send`. |
-| `AhelpNot.dll` | Safe | None/inert | `3ABB56C2C64B2710E5853238B815C74C28648E9D5DBD8526FAB71D911543DB5D` | `AhelpNot__AhelpNot__3ABB56C2` | Похоже на пустой пример Subverter-патча: есть только metadata `Example.Subverter.Simple.Command`, фактической команды/логики в декомпиляте не найдено. |
+| `AhelpNot.dll` | Safe | None/inert | `3ABB56C2C64B2710E5853238B815C74C28648E9D5DBD8526FAB71D911543DB5D` | `AhelpNot__AhelpNot__3ABB56C2` | Inert or incomplete Subverter metadata sample. Deep review found only SubverterPatch metadata/Harmony ID and assembly metadata; no command, PatchAll, AHelp/Bwoink hook, popup/sound suppression, or runtime logic was found in this SHA. |
 | `Based.dll` | Safe | Abuse: cheat framework/admin bypass/ESP | `70B16B989143769DF97D7CA3A089D102FC7D151459E30BCDB79E2541967C58A4` | `Based__Based__70B16B98` | Чит-фреймворк: локальный bypass админских проверок, скрытие сборок через `ReflectionManager`, fullbright/subfloor/job overlay, отключение визуальных эффектов, UI, aimbot через predictive attack events. |
-| `BBT.Ware.dll` | Safe | Abuse: HUD/ESP/admin bypass/visual bypass | `6D3B2690D4CF22E880F7A1A0991BADCD702CE877DCAE7B5EC0F8D4E979F4CFFF` | `BBT.Ware__BBT.Ware__6D3B2690` | Комбайн HUD/ESP/visual cheat: bypass `CanExecute`/admin checks, админ-описания сущностей, health/job/criminal/mindshield/syndicate icons, local name overlay, no-FOV/no-overlay, smoke/foam/fov controls, меню `inv_check`. |
+| `BBT.Ware.dll` | Safe | Abuse: HUD/ESP/admin bypass/visual bypass | `6D3B2690D4CF22E880F7A1A0991BADCD702CE877DCAE7B5EC0F8D4E979F4CFFF` | `BBT.Ware__BBT.Ware__6D3B2690` | Cheat/HUD/ESP/visual bypass framework: local admin permission bypass, admin entity descriptions, health/job/criminal/mindshield/syndicate icons, name overlay, no-FOV/no-overlay, smoke/foam/fov controls, menu UI. Deep review of this SHA found no direct user-device malware indicators; filename alone is not enough to classify other builds. |
 | `CMExploit.dll` | Safe | Abuse: forged UI/network action | `0114964124566E0EDA86D45F8460BD03A9F504A24861A8EDC7F9069247D2BF7F` | `CMExploit__CMExploit__01149641` | Команда `cmexploit` подделывает UI-сообщение эволюции xeno с выбранным prototype id через reflection-вызов `SharedUserInterfaceSystem.SendUiMessage`. |
 | `CommandPermissionPatch.dll` | Safe | Abuse: command permission bypass | `FA4C8C416B21499A9B86AD8287B2BD299EBABC915208584B97AE7CC82A95F69E` | `CommandPermissionPatch__CommandPermissionPatch__FA4C8C41` | Harmony-postfix на `Robust.Client.Console.ClientConsoleHost.CanExecute`; принудительно разрешает выполнение команд. |
 | `DODPatch.dll` | Safe | Abuse: visual bypass | `465FF6E59622C6C43CDAA7108C15910BC44B4A3510777BF00D16C8FD83AA85BD` | `DODPatch__DODPatch__465FF6E5` | Harmony-prefix блокирует `Clyde.DrawOcclusionDepth`, фактически отключая depth/occlusion pass и связанные визуальные ограничения. |
