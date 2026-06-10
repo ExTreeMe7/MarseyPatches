@@ -1,0 +1,20 @@
+# Keep the public repository focused on defensive indicators and reports.
+# Raw executable samples and full decompiled trees are intentionally not tracked.
+DLLs/
+Decompiled/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.nupkg
+*.bin
+
+.vs/
+.vscode/
+Thumbs.db
