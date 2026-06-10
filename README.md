@@ -83,6 +83,7 @@ Collection date: `2026-06-10`.
 |---|---|---|---|
 | [Androclast/gemini.cc-decomp](https://github.com/Androclast/gemini.cc-decomp) | Decompiled Gemini/Kaban-family reference useful for static comparison against user-device malware and cheat composites. | `84ec05c` on `2026-06-05`: README update. | 1 direct fork observed; direct fork was identical at collection time. |
 | [noverd/ArabicaCliento](https://github.com/noverd/ArabicaCliento) | Modified SS14 client / patch framework reference useful for understanding Harmony/Subverter patch surfaces, overlays, and cheat-menu style patterns. | `3a22257` on `2025-07-15`: cheat-menu fix merge. | 11 direct forks observed; 2 had unique commits ahead of upstream. |
+| [ExTreeMe7/FurryAudioReconnect](https://github.com/ExTreeMe7/FurryAudioReconnect) | Benign compatibility reference for Marsey/Subverter patch structure, runtime initialization, Harmony usage, and OpenAL audio recovery logic. | `6abb322` on `2026-06-10`: initial release. | No direct forks observed at collection time. |
 
 ### Fork Differences
 
