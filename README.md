@@ -29,6 +29,9 @@ Raw executable DLL samples and full decompiled source trees are not tracked in g
 - Reports/dll_copy_map.csv - relative mapping from original sample name to the local DLL workspace layout.
 - Reports/decompiled_copy_map.csv - relative mapping to decompiled project names from the private analysis workspace.
 - Reports/duplicate_hash_groups.csv - duplicate analysis grouped by SHA256.
+- Reports/external_commits.csv - selected recent commits from related public repositories.
+- Reports/external_forks.csv - fork comparison notes for related public repositories.
+- Reports/external_repositories.csv - metadata and defensive relevance for related public repositories.
 - Reports/root_cs_file_map.csv - top-level C# file map for decompiled managed projects.
 - `Signatures/hashes.sha256` - plain SHA256 list suitable for blocklists or triage scripts.
 - `Signatures/patch_matrix.csv` - CSV version of the sample matrix below.
@@ -69,6 +72,40 @@ Server-side signals worth monitoring at a high level:
 ## Important Limitations
 
 Static analysis can miss packed, obfuscated, staged, or environment-dependent behavior. Absence of a hit does not prove a file is safe. Some entries are third-party dependencies and should not be blocked only by name without context.
+
+## External Repository References
+
+Related public repositories were reviewed for defensive context, fork tracking, and commit history. These references are not endorsements and should be treated as untrusted research material.
+
+Collection date: `2026-06-10`.
+
+| Repository | Defensive relevance | Latest observed commit | Fork status |
+|---|---|---|---|
+| [Androclast/gemini.cc-decomp](https://github.com/Androclast/gemini.cc-decomp) | Decompiled Gemini/Kaban-family reference useful for static comparison against user-device malware and cheat composites. | `84ec05c` on `2026-06-05`: README update. | 1 direct fork observed; direct fork was identical at collection time. |
+| [noverd/ArabicaCliento](https://github.com/noverd/ArabicaCliento) | Modified SS14 client / patch framework reference useful for understanding Harmony/Subverter patch surfaces, overlays, and cheat-menu style patterns. | `3a22257` on `2025-07-15`: cheat-menu fix merge. | 11 direct forks observed; 2 had unique commits ahead of upstream. |
+
+### Fork Differences
+
+| Fork | Parent | Status vs parent | Latest observed commit | Difference summary |
+|---|---|---|---|---|
+| [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | `Androclast/gemini.cc-decomp` | identical, `ahead=0`, `behind=0` | `84ec05c`, `2026-06-05` | No difference from parent at collection time. |
+| [lexaSvarshik/ArabicaCliento](https://github.com/lexaSvarshik/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=20` | `8b1969b`, `2024-11-24` | Old snapshot; no unique ahead commits relative to current upstream. |
+| [cheltyi/ArabicaCliento](https://github.com/cheltyi/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=16` | `96c39ad`, `2024-12-05` | Old snapshot near upstream performance-fix merge; no unique ahead commits. |
+| [hircani200/ArabicaCliento](https://github.com/hircani200/ArabicaCliento) | `noverd/ArabicaCliento` | behind, `ahead=0`, `behind=16` | `96c39ad`, `2024-12-05` | Old snapshot near upstream performance-fix merge; no unique ahead commits. |
+| [TerrariumCat/ArabicaCliento](https://github.com/TerrariumCat/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
+| [d0r11s1m0/ArabicaCliento](https://github.com/d0r11s1m0/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
+| [xsainteer/ArabicaCliento-xsainteer](https://github.com/xsainteer/ArabicaCliento-xsainteer) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
+| [kakih-user/ArabicaCliento](https://github.com/kakih-user/ArabicaCliento) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time. |
+| [LetBoss/s](https://github.com/LetBoss/s) | `noverd/ArabicaCliento` | identical, `ahead=0`, `behind=0` | `3a22257`, `2025-07-15` | No difference from current upstream at collection time; repository renamed to a short name. |
+| [AZERBAIJAN-TECH/AzerbicaCliento](https://github.com/AZERBAIJAN-TECH/AzerbicaCliento) | `noverd/ArabicaCliento` | ahead, `ahead=7`, `behind=0` | `7104efc`, `2026-02-04` | Forward fork: .NET 10/submodule update, workflow changes, branding/Discord rename, small overlay/UI/build file edits. |
+| [shepardzs/ArabicaCliento](https://github.com/shepardzs/ArabicaCliento) | `noverd/ArabicaCliento` | ahead, `ahead=2`, `behind=0` | `5d19412`, `2026-03-28` | Forward fork: MouseRotatorPatch behavior change plus release workflow edit. |
+| [voko421/AzerbicaCliento](https://github.com/voko421/AzerbicaCliento) | `AZERBAIJAN-TECH/AzerbicaCliento` | identical, `ahead=0`, `behind=0` | `7104efc`, `2026-02-04` | Nested fork of AzerbicaCliento; identical to parent at collection time. |
+
+Detailed repository, fork, and commit data is also available in:
+
+- `Reports/external_repositories.csv`
+- `Reports/external_forks.csv`
+- `Reports/external_commits.csv`
 
 ## Sample Matrix
 | Файл | User Verdict | Game/Server Risk | SHA256 | Декомпилят | Функции и алгоритм |
