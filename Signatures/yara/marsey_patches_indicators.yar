@@ -1,10 +1,10 @@
 /*
-  MarseyPathes defensive indicators
+  MarseyPatches defensive indicators
   Scope: static triage of SS14/RobustToolbox client patch DLLs.
   Notes: these rules are indicators, not authoritative verdicts. Tune against local false positives.
 */
 
-rule MarseyPathes_Kaban_Client_RAT_Cheat_Composite
+rule MarseyPatches_Kaban_Client_RAT_Cheat_Composite
 {
     meta:
         description = "Kaban.cc-style SS14 client RAT/cheat composite indicators"
@@ -25,7 +25,7 @@ rule MarseyPathes_Kaban_Client_RAT_Cheat_Composite
         uint16(0) == 0x5A4D and 5 of them
 }
 
-rule MarseyPathes_FireStation_Bypass_Antidetect
+rule MarseyPatches_FireStation_Bypass_Antidetect
 {
     meta:
         description = "FireStation/Melonity verification bypass indicators"
@@ -41,7 +41,7 @@ rule MarseyPathes_FireStation_Bypass_Antidetect
         uint16(0) == 0x5A4D and 3 of them
 }
 
-rule MarseyPathes_Admin_Permission_Bypass
+rule MarseyPatches_Admin_Permission_Bypass
 {
     meta:
         description = "Client admin/console permission bypass patch indicators"
@@ -58,7 +58,7 @@ rule MarseyPathes_Admin_Permission_Bypass
         uint16(0) == 0x5A4D and 4 of them
 }
 
-rule MarseyPathes_AHelp_Admin_Abuse_Commands
+rule MarseyPatches_AHelp_Admin_Abuse_Commands
 {
     meta:
         description = "AHelp/admin abuse command strings"
@@ -74,7 +74,7 @@ rule MarseyPathes_AHelp_Admin_Abuse_Commands
         uint16(0) == 0x5A4D and 2 of them
 }
 
-rule MarseyPathes_Visual_Bypass_Overlay_FOV
+rule MarseyPatches_Visual_Bypass_Overlay_FOV
 {
     meta:
         description = "Visual limitation bypass patches: flash, overlays, FOV, lights"
@@ -93,7 +93,7 @@ rule MarseyPathes_Visual_Bypass_Overlay_FOV
         uint16(0) == 0x5A4D and 3 of them
 }
 
-rule MarseyPathes_NetLogger_Replay_Modify
+rule MarseyPatches_NetLogger_Replay_Modify
 {
     meta:
         description = "Network packet inspection/replay/modification helper indicators"
@@ -110,7 +110,7 @@ rule MarseyPathes_NetLogger_Replay_Modify
         uint16(0) == 0x5A4D and 4 of them
 }
 
-rule MarseyPathes_ProcessStart_External_URL_PUP
+rule MarseyPatches_ProcessStart_External_URL_PUP
 {
     meta:
         description = "Patch invoking external URL through process launch"

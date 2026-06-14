@@ -1,4 +1,4 @@
-# MarseyPathes
+# MarseyPatches
 
 Defensive static analysis notes and indicators for Marsey/Subverter-style SS14 client patch DLLs.
 
