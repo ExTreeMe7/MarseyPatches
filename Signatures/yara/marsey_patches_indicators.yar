@@ -122,3 +122,86 @@ rule MarseyPatches_ProcessStart_External_URL_PUP
     condition:
         uint16(0) == 0x5A4D and 2 of them
 }
+
+rule MarseyPatches_CerberusWareV3_Cheat_Antidetect
+{
+    meta:
+        description = "CerberusWareV3 high-risk SS14 cheat suite and anti-detect indicators"
+        category = "user-risk malware / game abuse"
+    strings:
+        $s1 = "CerberusWareV3" ascii wide
+        $s2 = "AnticheatSystemBlockerPatch" ascii wide
+        $s3 = "AnticheatEventBlockerPatch" ascii wide
+        $s4 = "AnticheatLogBlockerPatch" ascii wide
+        $s5 = "ScreengrabSystem" ascii wide
+        $s6 = "GunAimbotOverlay" ascii wide
+        $s7 = "StorageViewerOverlay" ascii wide
+        $s8 = "RobusterHome" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 4 of them
+}
+
+rule MarseyPatches_Lua14_Runtime_Patching
+{
+    meta:
+        description = "Lua14 runtime Lua/Harmony/reflection patch bridge indicators"
+        category = "dual-use runtime patch scripting"
+    strings:
+        $s1 = "Lua14" ascii wide
+        $s2 = "lua14.loadstring" ascii wide
+        $s3 = "LuaMods" ascii wide
+        $s4 = "HarmonyLibrary" ascii wide
+        $s5 = "ReflectionLibrary" ascii wide
+        $s6 = "NLua" ascii wide
+        $s7 = "KeraLua" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 4 of them
+}
+
+rule MarseyPatches_PhotoTroll_Capture_Tamper
+{
+    meta:
+        description = "photoTroll screenshot/capture response tampering indicators"
+        category = "game abuse / anti-detect"
+    strings:
+        $s1 = "photoTroll" ascii wide
+        $s2 = "RequestCaptureScreen" ascii wide
+        $s3 = "CaptureScreenResponseEvent" ascii wide
+        $s4 = "Fake screenshot sent" ascii wide
+        $s5 = "Marsey/Mods/photoTroll/image.png" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 3 of them
+}
+
+rule MarseyPatches_Sander_Overlay_Aimbot
+{
+    meta:
+        description = "Sander source-visible overlay/search/aim-assist mod indicators"
+        category = "game abuse"
+    strings:
+        $s1 = "Sander" ascii wide
+        $s2 = "GunBot" ascii wide
+        $s3 = "MeleeBot" ascii wide
+        $s4 = "SanderAimbotOverlay" ascii wide
+        $s5 = "SanderSyndicatePirateOverlay" ascii wide
+        $s6 = "SanderSearchBar" ascii wide
+        $s7 = "Footsteps" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 4 of them
+}
+
+rule MarseyPatches_OpenWare_ImGui_Hook
+{
+    meta:
+        description = "OpenWare/OpenHook ImGui rendering and input hook indicators"
+        category = "dual-use hooking framework"
+    strings:
+        $s1 = "OpenWare" ascii wide
+        $s2 = "SwapAllBuffers" ascii wide
+        $s3 = "InputPatchBindBlock" ascii wide
+        $s4 = "OverlayMenu" ascii wide
+        $s5 = "ImGuiController" ascii wide
+        $s6 = "Hexa.NET.ImGui" ascii wide
+    condition:
+        uint16(0) == 0x5A4D and 4 of them
+}

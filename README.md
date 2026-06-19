@@ -1,8 +1,8 @@
 # MarseyPatches
 
-Defensive static analysis notes and indicators for Marsey/Subverter-style SS14 client patch DLLs.
+Defensive static-analysis notes and indicators for Marsey/Subverter-style Space Station 14 client patch DLLs.
 
-The repository is intended for server maintainers, anticheat developers, and incident responders who need hashes, static indicators, and a high-level behavioral map of known client-side patches.
+This repository is intended for server maintainers, anticheat developers, and incident responders who need hashes, static indicators, repository references, and a high-level behavioral map of known client-side patches.
 
 ## Scope
 
@@ -11,83 +11,85 @@ This repository tracks defensive material only:
 - sanitized static-analysis reports;
 - SHA256 hashes for known samples;
 - YARA-style static indicators;
-- a risk matrix separating user-device malware risk from game/server abuse risk.
+- high-level behavior summaries;
+- a risk matrix that separates user-device risk from game/server abuse risk.
 
-Raw executable DLL samples and full decompiled source trees are not tracked in git. This avoids redistributing ready-to-run cheat or malware artifacts while keeping the useful defensive signatures available.
+Raw executable DLL samples and full decompiled source trees are intentionally not tracked in git. This avoids redistributing ready-to-run cheat or malware artifacts while keeping useful defensive signatures available.
 
 ## Dataset
 
-- Known DLL/sample entries: `59`.
-- Managed .NET assemblies: `57`.
-- Decompiled projects in the private analysis workspace: `57`.
-- Exact byte duplicates by SHA256: none found in the analyzed set.
+Collection date: 2026-06-19.
+
+- Reviewed matrix entries: `81`.
+- Baseline entries from the previous set: `59`.
+- Newly reviewed entries from `DLLs/NEW`: `22`.
+- New raw DLL inventory: `Reports/new_dll_inventory.csv`.
+- Public source reference added: `MelvinMod/Sander`.
+- Exact duplicate handling: repeated files with the same SHA256 are represented once in the matrix; alternate paths remain available in the inventory CSV.
 
 ## Repository Layout
 
-- README.md - overview, risk model, usage notes, and sample matrix.
-- Reports/source_inventory.csv - sanitized inventory with relative sample paths, assembly metadata, sizes, and hashes.
-- Reports/dll_copy_map.csv - relative mapping from original sample name to the local DLL workspace layout.
-- Reports/decompiled_copy_map.csv - relative mapping to decompiled project names from the private analysis workspace.
-- Reports/deep_review_notes.csv - additional focused review notes for selected samples.
-- Reports/duplicate_hash_groups.csv - duplicate analysis grouped by SHA256.
-- Reports/external_commits.csv - selected recent commits from related public repositories.
-- Reports/external_forks.csv - fork comparison notes for related public repositories.
-- Reports/external_repositories.csv - metadata and defensive relevance for related public repositories.
-- Reports/root_cs_file_map.csv - top-level C# file map for decompiled managed projects.
+- `README.md` - overview, risk model, repository references, and categorized sample matrix.
+- `Reports/source_inventory.csv` - baseline sanitized inventory with sample paths, assembly metadata, sizes, and hashes.
+- `Reports/new_dll_inventory.csv` - inventory for the newest local DLL set under `DLLs/NEW`.
+- `Reports/dll_copy_map.csv` - relative mapping from original sample name to local DLL workspace layout.
+- `Reports/decompiled_copy_map.csv` - relative mapping to decompiled project names from the private analysis workspace.
+- `Reports/deep_review_notes.csv` - focused review notes for selected samples.
+- `Reports/duplicate_hash_groups.csv` - duplicate analysis grouped by SHA256.
+- `Reports/external_repositories.csv` - metadata for related public repositories.
+- `Reports/external_forks.csv` - fork comparison notes for related public repositories.
+- `Reports/external_commits.csv` - selected recent commits from related public repositories.
+- `Reports/root_cs_file_map.csv` - top-level C# file map for decompiled managed projects.
 - `Signatures/hashes.sha256` - plain SHA256 list suitable for blocklists or triage scripts.
-- `Signatures/patch_matrix.csv` - CSV version of the sample matrix below.
+- `Signatures/patch_matrix.csv` - CSV version of the sample matrix.
 - `Signatures/yara/marsey_patches_indicators.yar` - defensive static YARA indicators.
 
 ## Risk Model
 
 User Verdict describes risk to the person running the DLL:
 
-- Safe means no obvious RAT/C2, data theft, screenshot exfiltration, persistence, destructive behavior, or unwanted process launch was found in a quick static review. It is not a clean-room guarantee.
-- Malware means the sample contains behavior that can harm the user or their device, such as C2/RAT logic, telemetry/data collection, screenshots, HWID tracking, anti-analysis, or similar behavior.
-- Malware/PUP means potentially unwanted behavior affecting the user's device, such as launching an external URL/process.
-- Unknown means the sample was not fully classifiable from the available managed .NET analysis.
+- `Safe`: quick static review found no obvious RAT/C2, credential theft, persistence, destructive behavior, unwanted process launch, or similar user-device harm. This is not a clean-room guarantee.
+- `Malware`: behavior can harm or surveil the user/device, such as C2/RAT logic, telemetry/data collection, screenshots, HWID tracking, anti-analysis, or similar behavior.
+- `Malware/PUP`: potentially unwanted behavior affecting the user's device, such as launching an external URL/process.
+- `Unknown`: the sample could not be fully classified from available static analysis.
 
 Game/Server Risk describes abuse risk against SS14 servers and gameplay:
 
-- Abuse entries include ESP/HUD overlays, visual bypasses, admin/console permission bypasses, packet replay/modification, ahelp spam, anti-detect logic, or forged UI/network behavior.
-- Dependency entries are libraries used by other samples. A dependency may be harmless by itself while still supporting a malicious or abusive sample.
+- `Abuse`: ESP/HUD overlays, visual bypasses, admin/console permission bypasses, packet replay/modification, ahelp/chat spam, anti-detect logic, forged UI/network behavior, or automation that can affect server fairness.
+- `Dependency`: library used by other samples. A dependency may be harmless by itself while supporting a malicious or abusive sample.
+- `None/inert`: no runtime behavior found in this static review, despite the file name or metadata.
 
 ## Defensive Usage
 
-Suggested defensive workflow:
+Suggested workflow:
 
-1. Use Signatures/hashes.sha256 for exact sample matching.
-2. Use Reports/source_inventory.csv to distinguish first-party dependencies from suspicious patch assemblies.
-3. Use Signatures/yara/marsey_patches_indicators.yar for static triage of unknown DLLs.
-4. Treat YARA hits as leads, not final verdicts. Confirm with assembly metadata, loaded type names, behavior, and server-side telemetry.
-5. Prioritize high-risk categories: C2/RAT composites, anti-detect/verification bypasses, permission bypasses, packet manipulation, and ahelp/admin abuse commands.
+1. Use `Signatures/hashes.sha256` for exact sample matching.
+2. Use `Reports/source_inventory.csv` and `Reports/new_dll_inventory.csv` to distinguish patch assemblies from dependencies and build artifacts.
+3. Use `Signatures/yara/marsey_patches_indicators.yar` for static triage of unknown DLLs.
+4. Treat YARA hits as leads, not final verdicts. Confirm with hashes, assembly metadata, loaded type names, runtime behavior, and server-side telemetry.
+5. Prioritize high-risk categories: C2/RAT composites, anti-detect/verification bypasses, permission bypasses, packet manipulation, ahelp/admin abuse commands, and screenshot/capture tampering.
 
 Server-side signals worth monitoring at a high level:
 
 - impossible or unauthorized command execution from normal clients;
-- repeated ahelp/bwoink bursts or scripted chat behavior;
-- anomalous client messages related to UI actions, purchases, lobby economy, or character state;
-- gameplay patterns consistent with disabled visual limitations, fullbright/no-FOV, or unauthorized status information;
+- repeated ahelp, bwoink, LOOC/OOC, or chat bursts;
+- anomalous client messages related to UI actions, purchases, lobby economy, ghost roles, character state, or screenshot/capture responses;
+- gameplay patterns consistent with disabled visual limitations, fullbright/no-FOV, unauthorized status information, or combat automation;
 - known malicious assembly names, hashes, and static strings during client integrity checks where such checks are permitted.
-
-## Important Limitations
-
-Static analysis can miss packed, obfuscated, staged, or environment-dependent behavior. Absence of a hit does not prove a file is safe. Some entries are third-party dependencies and should not be blocked only by name without context.
-
-File names are not stable indicators. Different builds may use the same DLL name while having different behavior. Prefer SHA256, assembly metadata, static strings, and behavior notes when comparing reports.
 
 ## External Repository References
 
 Related public repositories were reviewed for defensive context, fork tracking, recursive fork discovery, and commit history. These references are not endorsements and should be treated as untrusted research material.
 
-Collection date: 2026-06-10.
+Collection date: 2026-06-19.
 
 Graph summary:
 
-- repositories recorded: 21;
-- fork edges recorded: 14;
-- recent commit records: 84;
-- recursive depth observed: 2.
+- repositories recorded: `22`;
+- fork edges recorded: `14`;
+- recent commit records: `84`;
+- recursive depth observed: `2`;
+- new source reference: `MelvinMod/Sander`.
 
 ### Seed And Root Repositories
 
@@ -98,10 +100,11 @@ Graph summary:
 | [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | Gemini/Kaban-family decompiled reference | `84ec05c`: Update README.MD | parent: `Androclast/gemini.cc-decomp`; forks: `0` |
 | [ddepsadd/MusyaBlueprints](https://github.com/ddepsadd/MusyaBlueprints) | Musya/FurryLoader blueprint or patch metadata reference | `8975f93`: New blueprint standards | parent: `-`; forks: `0` |
 | [ddepsadd/OpenHook](https://github.com/ddepsadd/OpenHook) | Hooking framework/reference repository | `30ea3e5`: Update README.md | parent: `-`; forks: `1` |
-| [ddepsadd/photoTroll](https://github.com/ddepsadd/photoTroll) | Unknown/utility reference requiring review | `b5fb060`: Initial commit | parent: `-`; forks: `0` |
+| [ddepsadd/photoTroll](https://github.com/ddepsadd/photoTroll) | Screenshot/capture-tampering reference | `b5fb060`: Initial commit | parent: `-`; forks: `0` |
 | [DobriyKaban/OpenHook](https://github.com/DobriyKaban/OpenHook) | Hooking framework/reference repository | `4b8baaf`: Update README.md | parent: `ddepsadd/OpenHook`; forks: `0` |
 | [DobriyKaban/SS14.Transmog](https://github.com/DobriyKaban/SS14.Transmog) | SS14 transmog/cosmetic patch reference | `bce52ab`: Non-descriptive update | parent: `Androclast/SS14.Transmog`; forks: `0` |
 | [ExTreeMe7/FurryAudioReconnect](https://github.com/ExTreeMe7/FurryAudioReconnect) | Benign SS14 OpenAL audio reconnect patch reference | `6abb322`: Initial release | parent: `-`; forks: `0` |
+| [MelvinMod/Sander](https://github.com/MelvinMod/Sander) | Source-visible SS14 overlay/aimbot/search mod reference | `23d3556`: Update README.md | parent: `-`; forks: `0`; latest release: `1.6` |
 | [noverd/ArabicaCliento](https://github.com/noverd/ArabicaCliento) | Modified SS14 client / patch framework reference | `3a22257`: Merge pull request #9 from noverd/cheatmenu_fix_2025-07-13 | parent: `-`; forks: `11` |
 
 ### Recursive Fork Graph
@@ -111,106 +114,176 @@ Graph summary:
 | [ddepsadd/gemini.cc-decomp](https://github.com/ddepsadd/gemini.cc-decomp) | `Androclast/gemini.cc-decomp` | `0` | `identical`; ahead `0` / behind `0` | `84ec05c` | No difference from parent at collection time. |
 | [DobriyKaban/SS14.Transmog](https://github.com/DobriyKaban/SS14.Transmog) | `Androclast/SS14.Transmog` | `0` | `identical`; ahead `0` / behind `0` | `bce52ab` | No difference from parent at collection time. |
 | [DobriyKaban/OpenHook](https://github.com/DobriyKaban/OpenHook) | `ddepsadd/OpenHook` | `0` | `behind`; ahead `0` / behind `3` | `4b8baaf` | Old snapshot behind parent by 3 commits; no unique ahead commits. |
-| [AZERBAIJAN-TECH/AzerbicaCliento](https://github.com/AZERBAIJAN-TECH/AzerbicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `7` / behind `0` | `7104efc` | Forward fork ahead by 7 commits. Changed areas: .github; ArabicaCliento; ArabicaCliento.sln; build.sh; README.md; space-station-14 |
+| [AZERBAIJAN-TECH/AzerbicaCliento](https://github.com/AZERBAIJAN-TECH/AzerbicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `7` / behind `0` | `7104efc` | Forward fork ahead by 7 commits. Changed areas: `.github`, `ArabicaCliento`, solution/build files, README, and vendored `space-station-14`. |
 | [cheltyi/ArabicaCliento](https://github.com/cheltyi/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `16` | `96c39ad` | Old snapshot behind parent by 16 commits; no unique ahead commits. |
 | [d0r11s1m0/ArabicaCliento](https://github.com/d0r11s1m0/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
 | [hircani200/ArabicaCliento](https://github.com/hircani200/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `16` | `96c39ad` | Old snapshot behind parent by 16 commits; no unique ahead commits. |
 | [kakih-user/ArabicaCliento](https://github.com/kakih-user/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
 | [LetBoss/s](https://github.com/LetBoss/s) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
 | [lexaSvarshik/ArabicaCliento](https://github.com/lexaSvarshik/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `behind`; ahead `0` / behind `20` | `8b1969b` | Old snapshot behind parent by 20 commits; no unique ahead commits. |
-| [shepardzs/ArabicaCliento](https://github.com/shepardzs/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `2` / behind `0` | `5d19412` | Forward fork ahead by 2 commits. Changed areas: .github; ArabicaCliento |
+| [shepardzs/ArabicaCliento](https://github.com/shepardzs/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `ahead`; ahead `2` / behind `0` | `5d19412` | Forward fork ahead by 2 commits. Changed areas: `.github` and `ArabicaCliento`. |
 | [TerrariumCat/ArabicaCliento](https://github.com/TerrariumCat/ArabicaCliento) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
 | [xsainteer/ArabicaCliento-xsainteer](https://github.com/xsainteer/ArabicaCliento-xsainteer) | `noverd/ArabicaCliento` | `1` | `identical`; ahead `0` / behind `0` | `3a22257` | No difference from parent at collection time. |
 | [voko421/AzerbicaCliento](https://github.com/voko421/AzerbicaCliento) | `AZERBAIJAN-TECH/AzerbicaCliento` | `2` | `identical`; ahead `0` / behind `0` | `7104efc` | No difference from parent at collection time. |
 
 Detailed repository, fork, and commit data is also available in:
 
-- Reports/external_repositories.csv
-- Reports/external_forks.csv
-- Reports/external_commits.csv
-## Sample Matrix
-| Файл | User Verdict | Game/Server Risk | SHA256 | Декомпилят | Функции и алгоритм |
-|---|---|---|---|---|---|
-| `AdminExploit.dll` | Safe | Abuse: chat spam | `8748E9EE12801AA92AFDF58A8CED85930B9795CC317540DC8878B477D2A777D6` | `AdminExploit__TextHelper__8748E9EE` | Регистрирует команду `TakeAdmin`; фактически запускает бесконечный быстрый `say`-спам с ASCII-баннером. Создаёт `Marsey/Config/HText.txt`, но в видимом коде не даёт админ-права. |
-| `AdminPatch.dll` | Safe | Abuse: admin permission bypass | `5956B7ADACB5A80F8466B21500A12C6B372CB66FF751C2A09DE513C226A77EB2` | `AdminPatch__AdminPatch__5956B7AD` | Harmony-prefix принудительно возвращает `true` для `ClientAdminManager.CanCommand`, `CanScript`, `CanAdminMenu`, `CanAdminPlace`, `IsActive`; также подменяет описание сущности на админское. |
-| `AdminSliver.dll` | Safe | Abuse: mass admin actions/ahelp spam | `F8831DE1DF18C9A64EAF546E30D44556ECBC73D4F85739DAB4C0E23F8E3313AB` | `AdminSliver__AdminSliver__F8831DE1` | Набор команд `SlivBanAll`, `SlivKickAll`, `SlivKillAll`, `SlivAhelp`, `SlivPlayerList`; использует `AdminSystem`, консольные команды и ahelp/Bwoink для массового вреда. |
-| `AHelpBomber.dll` | Safe | Abuse: ahelp spam | `9940328D1EF70BB895350A51B1C05253253DA5C65BB7451DEC47851552D015CF` | `AHelpBomber__AhelpBomber__9940328D` | Команда `ahelpbomber` запускает цикл отправки сообщений в ahelp с задержкой около 10 мс через `BwoinkSystem.Send`. |
-| `AhelpNot.dll` | Safe | None/inert | `3ABB56C2C64B2710E5853238B815C74C28648E9D5DBD8526FAB71D911543DB5D` | `AhelpNot__AhelpNot__3ABB56C2` | Inert or incomplete Subverter metadata sample. Deep review found only SubverterPatch metadata/Harmony ID and assembly metadata; no command, PatchAll, AHelp/Bwoink hook, popup/sound suppression, or runtime logic was found in this SHA. |
-| `Based.dll` | Safe | Abuse: cheat framework/admin bypass/ESP | `70B16B989143769DF97D7CA3A089D102FC7D151459E30BCDB79E2541967C58A4` | `Based__Based__70B16B98` | Чит-фреймворк: локальный bypass админских проверок, скрытие сборок через `ReflectionManager`, fullbright/subfloor/job overlay, отключение визуальных эффектов, UI, aimbot через predictive attack events. |
-| `BBT.Ware.dll` | Safe | Abuse: HUD/ESP/admin bypass/visual bypass | `6D3B2690D4CF22E880F7A1A0991BADCD702CE877DCAE7B5EC0F8D4E979F4CFFF` | `BBT.Ware__BBT.Ware__6D3B2690` | Cheat/HUD/ESP/visual bypass framework: local admin permission bypass, admin entity descriptions, health/job/criminal/mindshield/syndicate icons, name overlay, no-FOV/no-overlay, smoke/foam/fov controls, menu UI. Deep review of this SHA found no direct user-device malware indicators; filename alone is not enough to classify other builds. |
-| `CMExploit.dll` | Safe | Abuse: forged UI/network action | `0114964124566E0EDA86D45F8460BD03A9F504A24861A8EDC7F9069247D2BF7F` | `CMExploit__CMExploit__01149641` | Команда `cmexploit` подделывает UI-сообщение эволюции xeno с выбранным prototype id через reflection-вызов `SharedUserInterfaceSystem.SendUiMessage`. |
-| `CommandPermissionPatch.dll` | Safe | Abuse: command permission bypass | `FA4C8C416B21499A9B86AD8287B2BD299EBABC915208584B97AE7CC82A95F69E` | `CommandPermissionPatch__CommandPermissionPatch__FA4C8C41` | Harmony-postfix на `Robust.Client.Console.ClientConsoleHost.CanExecute`; принудительно разрешает выполнение команд. |
-| `DODPatch.dll` | Safe | Abuse: visual bypass | `465FF6E59622C6C43CDAA7108C15910BC44B4A3510777BF00D16C8FD83AA85BD` | `DODPatch__DODPatch__465FF6E5` | Harmony-prefix блокирует `Clyde.DrawOcclusionDepth`, фактически отключая depth/occlusion pass и связанные визуальные ограничения. |
-| `fayliki dlya bistrogo vzyatiya prof gosta.dll` | Unknown | Unknown native/non-managed | `20F35AD8D3C1239B0FFD93588C40EA297DAFA61C49CBFEAD89313DE07A4B71BD` | нет | 440 байт, не является managed .NET assembly, `GetAssemblyName` выдаёт `Unknown file format`. Оставлен как подозрительный неизвестный файл. |
-| `FireStationBypass.dll` | Safe | Abuse: anti-cheat/anti-detect bypass | `36438BFC3136DAC0375A326C23B2441480B5309578A8974D2F155494A1D85418` | `FireStationBypass__FireStationBypass__36438BFC` | Античит-bypass: ищет `MelonityVerificationClient`, патчит обфусцированные методы, подсовывает clean verification response и скрывает типы `Harmony/Subverter/Marsey/Sedition/Ware` через `Type.GetType`. |
-| `FlashPatch.dll` | Safe | Abuse: visual bypass | `458DA83985DDC433DBB8930EE35DE962EB8EF7640110C124C4A20A49867C0F86` | `FlashPatch__FlashPatch__458DA839` | Harmony-prefix отменяет `Content.Client.Flash.FlashOverlay.Draw`, отключая эффект вспышки. |
-| `FoamControll.dll` | Safe | Abuse: visual bypass | `4A4FBE365E19303AF1D2CD6A23A80A15C182BC86B024EF0A0F21DDF72E78F14C` | `FoamControll__FoamControll__4A4FBE36` | Команда/CVar для изменения прозрачности пены; обходит визуальное препятствие и даёт игровое преимущество. |
-| `ForceListing_1.dll` | Safe | Abuse: purchase restriction bypass | `AEBE1B6210D28E62A483890D5579EA5CA1387433C58EA8CB327DB1AAD8BD5247` | `ForceListing_1__ForceListing__AEBE1B62` | Harmony-prefix конструктора `StoreListingControl` принудительно выставляет `canBuy = true`, обходя UI-ограничение покупки. |
-| `FreeOverlay.dll` | Safe | Abuse: ESP/overlay | `15CB78F7150907000F7FC0C19A3722D1E8FFB27FA1AD3327EC9F9AEEC14C6381` | `FreeOverlay__ClassLibrary1__15CB78F7` | Добавляет overlay, рисующий имена/состояния сущностей и локальные боевые индикаторы; ESP-подобное поведение. |
-| `FrontierExploit.dll` | Safe | Abuse: forged economy update | `0BE2E8890CBE889AE08B2C9AB3D288CA43F6DD2B8477057A594331BDCEF5E56E` | `FrontierExploit__FrontierExploit__0BE2E889` | Команда `frontierExploit.setMoney` меняет `BankBalance` выбранного персонажа в lobby и отправляет `MsgUpdateCharacter` серверу. |
-| `fullhud.dll` | Safe | Abuse: HUD/status info bypass | `77AFC8A668221D7D17E0D98BC47CF5ED6B88B1ED4C452A10DCFAE9E8F5083489` | `fullhud__superhudoverlay__77AFC8A6` | Патчит выдачу статус-иконок/HUD; включает дополнительные job/status overlay, дающие информацию, обычно недоступную игроку. |
-| `GhostPatch.dll` | Safe | Abuse: ghost visibility bypass | `CA3CCA8F979A256D5C2F5D157085C10A383ABE1D270B307E4FE92FE1CB67A737` | `GhostPatch__GhostPatch__CA3CCA8F` | Harmony-патчи `GhostSystem`: принудительно держит `GhostVisibility = true`, делает ghost sprite/layers visible после startup/attach/detach/state. |
-| `HudOverlaysPatch.dll` | Safe | Abuse: HUD/status info bypass | `389A17AEB18BF3EC2797EC9717BE410BBE72E93F3B547EC4EA1A447FCE0F2A1B` | `HudOverlaysPatch__HudOverlaysPatch__389A17AE` | Патч HUD/status icons, близкий к `fullhud`; включает дополнительные overlay-компоненты/иконки. |
-| `jerk.dll` | Safe | Abuse: action spam/crash-like behavior | `916B0BD4CEE5A3C12EB5A611C44DC52A508F875D83178FE03D17032C71768FFA` | `jerk__jerk__916B0BD4` | Содержит `JerkCrash`, который в цикле вызывает hand UI clicks, пока есть свободная рука; также регистрирует keybind. Потенциально используется для спама/краша/десинка действий. |
-| `Lidgren.Network.dll` | Safe | Dependency | `25A1CBC64BC75497DC6C67FE8A3246529C762271C68F8AD4C2864F8973E6CFBD` | `Lidgren.Network__Lidgren.Network__25A1CBC6` | Сторонняя библиотека сетевого транспорта Lidgren. Сам по себе dependency, вредной логики патча нет. |
-| `LightDisabler.dll` | Safe | Abuse: fullbright/no-FOV | `091466FF7FBA9BCA49448C21F20F15130DDC2F6363FC95050D4E9AEB7E450CC1` | `LightDisabler__LightDisabler__091466FF` | Блокирует `Clyde.ApplyFovToBuffer` и `Clyde.DrawLightsAndFov`, то есть fullbright/no-FOV. |
-| `Mods/Hexa.NET.ImGui.Backends.dll` | Safe | Dependency | `A8AC0B8926AB4E0FBF811ECC556510E97BEA0BF8672C06EF3F73B0A35ABA7970` | `Hexa.NET.ImGui.Backends__Hexa.NET.ImGui.Backends__A8AC0B89` | Dependency для ImGui backend. Сам по себе не патч. |
-| `Mods/Hexa.NET.ImGui.dll` | Safe | Dependency | `4E73425C3A064CA8F91BA3D50A86370A14EB80004F055966F855B9937079ADB3` | `Hexa.NET.ImGui__Hexa.NET.ImGui__4E73425C` | Dependency ImGui bindings. Сам по себе не патч. |
-| `Mods/HexaGen.Runtime.dll` | Safe | Dependency | `DEDAFE0C309256DF620AF8D0CCC82D9D781E87EDF52AC838029F5A36A74F2380` | `HexaGen.Runtime__HexaGen.Runtime__DEDAFE0C` | Dependency runtime для Hexa-generated bindings. |
-| `Mods/Kaban.cc.dll` | Malware | Abuse + RAT/C2/spyware | `3E6500CDE30D5D202453B1C801FF51E2BBC6142213E8C6DFFF128139E2804B1E` | `Kaban.cc__Kaban.cc__3E6500CD` | Полноценный RAT/cheat suite: WebView2/ImGui UI, ESP/aimbot/automation, anti-debug/anti-dump/anti-VM, assembly/type/component hiding, HWID/license, telemetry, screenshot capture, data collection, SocketIO C2 commands. |
-| `Mods/KeraLua.dll` | Safe | Dependency | `A0EC77CE05FB711208F32B50BF2FD0BF2CF6FBFC087A22DF2534F243E3F03F7E` | `KeraLua__KeraLua__A0EC77CE` | Dependency Lua runtime binding. Сам по себе не патч. |
-| `Mods/Microsoft.Web.WebView2.Core.dll` | Safe | Dependency | `2B999D1775004E98B32F281F4518F3952DF650970748527EF5B54FA9979D6C9C` | `Microsoft.Web.WebView2.Core__Microsoft.Web.WebView2.Core__2B999D17` | WebView2 dependency. Используется `Kaban.cc` для UI, сам по себе библиотека. |
-| `Mods/Microsoft.Web.WebView2.Wpf.dll` | Safe | Dependency | `B6A200F3DFCF2CB6C3B6E6179DA0590E01525B111E8F85B94C6060456102972F` | `Microsoft.Web.WebView2.Wpf__Microsoft.Web.WebView2.Wpf__B6A200F3` | WebView2 WPF dependency. |
-| `Mods/MinHook.NET.dll` | Safe | Dual-use dependency | `75DCAF807D819F9CFD330ECA33BCC2CF496F31BDAEE87614EAE1D42B1414E65B` | `MinHook.NET__MinHook.NET__75DCAF80` | Hooking dependency. Dual-use: сам по себе библиотека, но в этой пачке используется вредным `Kaban.cc`. |
-| `Mods/Newtonsoft.Json.dll` | Safe | Dependency | `A28C251DFE36D881E9E2462E171441B8B0EC156FE3F452602C9149B1B9EFE05B` | `Newtonsoft.Json__Newtonsoft.Json__A28C251D` | JSON dependency. |
-| `Mods/NLua.dll` | Safe | Dependency | `29AF6AF4239AB7B8CF4E4EA19268AB5F5D0B7C52E27A1358EA56ED5C268F8368` | `NLua__NLua__29AF6AF4` | Lua integration dependency. |
-| `Mods/PresentationCore.dll` | Safe | Dependency | `83B1D7D6BCC397D26679AC6EB91BAD501867D8C11015E29614E263782405505A` | `PresentationCore__PresentationCore__83B1D7D6` | WPF dependency. |
-| `Mods/PresentationFramework.dll` | Safe | Dependency | `40FEE697DCABF7543C276BAD1A473377964224E8DCA87BA7ADB4E888C706078A` | `PresentationFramework__PresentationFramework__40FEE697` | WPF dependency. |
-| `Mods/SocketIOClient.dll` | Safe | Dependency used by malware | `8D37BA5CEE2D5AC7A133A48CB92B555C6CB6B2B23CC2AE7AB45CC4C67C7A1DC2` | `SocketIOClient__SocketIOClient__8D37BA5C` | Socket.IO dependency. Сам по себе библиотека; в этой пачке используется `Kaban.cc` для C2. |
-| `Mods/SpaceWizards.Lidgren.Network.dll` | Safe | Dependency | `3A9D41BBD2B0C14521DC46BE463AA373A1275574EC8693CFFCF77244A526B87F` | `SpaceWizards.Lidgren.Network__SpaceWizards.Lidgren.Network__3A9D41BB` | Space Wizards fork/dependency сетевого транспорта. |
-| `Mods/System.Drawing.Common.dll` | Safe | Dependency used by screenshot code | `96502314BA173A28729E2E1C2E65C42447ACD2E5A90F0F721C56AD8AE9FA38D5` | `System.Drawing.Common__System.Drawing.Common__96502314` | .NET drawing dependency; в `Kaban.cc` связан со screenshot/image code, но сам по себе библиотека. |
-| `Mods/System.IO.Packaging.dll` | Safe | Dependency | `08E66248C9E6649558D9E840AF41A07A4E5B00C6139842E278F7957F5BC1F384` | `System.IO.Packaging__System.IO.Packaging__08E66248` | .NET packaging dependency. |
-| `Mods/System.Windows.Forms.dll` | Safe | Dependency | `2292F948108DD44C3382E91329A7B3E79488FA737A35907F8B1D32B5A6BE7D51` | `System.Windows.Forms__System.Windows.Forms__2292F948` | Windows Forms dependency. |
-| `Mods/System.Xaml.dll` | Safe | Dependency | `29E6A4082ECAD4BBB81319C70BF348500DADA1C04412C49DA747765959EC8152` | `System.Xaml__System.Xaml__29E6A408` | XAML dependency. |
-| `Mods/UIAutomationProvider.dll` | Safe | Dependency | `12920B584280EBC5278FCEDE9F119AA4E519613006FA95BF4115378294006E0C` | `UIAutomationProvider__UIAutomationProvider__12920B58` | UIAutomation dependency. |
-| `Mods/UIAutomationTypes.dll` | Safe | Dependency | `FDC014EC4C4F1AEE74484407F73C8852D1B3DF9037885AF1BED7A1F8DE6E7666` | `UIAutomationTypes__UIAutomationTypes__FDC014EC` | UIAutomation dependency. |
-| `Mods/WebView2Loader.dll` | Safe | Native dependency | `8427B1FC58EC707813E5C0A51EB5D69397BB333250A7B891BE4D3B123F1E0F1C` | нет | Native WebView2 loader, не managed .NET. Вредная логика не анализировалась декомпилятором; оставлен как dependency. |
-| `Mods/WindowsBase.dll` | Safe | Dependency | `181153DF3D869B38357454F0F66248F57F0611F7CC9D892B5A7B8B45DDB97B08` | `WindowsBase__WindowsBase__181153DF` | WPF/WindowsBase dependency. |
-| `Mods/WinRT.Runtime.dll` | Safe | Dependency | `2238FECFEA07FCE5CEE748F3CE7EC8A59823A4571BE6F60A530BE8751D48BB35` | `WinRT.Runtime__WinRT.Runtime__2238FECF` | WinRT runtime dependency. |
-| `NetLogger.dll` | Safe | Abuse: packet inspect/replay/modify | `3ED27194685D3720A142A13391FD82FDB91F14C3BD5FA22B3B0BB371B944557D` | `NetLogger__NetLogger__3ED27194` | Патчит сетевой логгер, показывает SEND/RECV пакеты, хранит последние сообщения, даёт UI для просмотра структуры, replay и отправки модифицированного пакета. |
-| `NoOverlay.dll` | Safe | Abuse: visual bypass | `EF47584CDFAA5F9F3D4BB67ADE2A7BD9FA60FD687C683F237F9DA8F6DED0D53A` | `NoOverlay__NoOverlay__EF47584C` | Блокирует flash/blind/blurry/temporary blindness/eye damage paths; отключает важные визуальные и геймплейные ограничения. |
-| `OverlaysPatch_1.dll` | Safe | Abuse: visual bypass | `2D905D352D355E603092DC6517E238096314F63EDA7E13905557FED95BBB5DCB` | `OverlaysPatch_1__OverlaysPatch__2D905D35` | Упрощённый клон `OverlaysPatch`: должен отключать drunk/rainbow/blind/blurry overlay через skip `Draw`. Функционально избыточен. |
-| `OverlaysPatch.dll` | Safe | Abuse: visual bypass | `A8C1E6C105EDDD82A1D6A9E5B3D438A4227ED45AF4DABB937560BB4EE4AAAA9C` | `OverlaysPatch__OverlaysPatch__A8C1E6C1` | Отключает drunk/rainbow/blind/blurry overlay через Harmony-prefix на `Draw`. Более полный вариант, чем `OverlaysPatch_1`. |
-| `Rethemer.dll` | Safe | Cosmetic | `7E41D3FAE2529564DD3D48C4DF873E9EA4B2537FCEBC93B3CC3752F15ECB38B7` | `Rethemer__Rethemer__7E41D3FA` | Косметический транспайлер стилей `StyleNano` и `MenuButton`, меняет stylesheet/menu theme на Marsey-вариант. Вредной сетевой/эксплойтной логики не найдено. |
-| `Robusto_1.dll` | Safe | Abuse: visual bypass | `5AAF4029DD4FF60DC12767C39DE4A1467C2ABFEB6E7479B1759F46F551D8014C` | `Robusto_1__Robusto__5AAF4029` | Отключает FOV/light/shadows, stealth shader, drunk/rainbow/blind/blurry/flash overlay. Клиентский visual cheat. |
-| `RotatePath.dll` | Safe | None/inert utility | `4395DA068FF2FB8008FC2E6021F4317B2F256702F798660A2507D314CF1A7743` | `RotatePath__RotatePath__4395DA06` | Команда `spin on/off` меняет статический флаг `_isSpinning`, но в декомпиляте не найден код, который реально применяет вращение. Выглядит как инертная/недоделанная утилита. |
-| `Serilog.dll` | Safe | Dependency | `BA73B4BF7C8EF54303AD3CE540AC61855E0CD0D8396AD622059D43CCDEA1C854` | `Serilog__Serilog__BA73B4BF` | Стандартная logging dependency. |
-| `somth.dll` | Safe | Abuse: combat stat cheat | `167A5201B6C93C736A056ED8560BAB3438FD20BE5D87CFE3246B08D26D2C2730` | `somth__somth__167A5201` | Harmony-postfix на `MeleeWeaponComponent` выставляет `AttackRate = 99f`; очевидный боевой cheat. |
-| `SukaDaKakogoHuya.dll` | Safe | Abuse: character/species restriction bypass | `00612F05F927465C4044AD21B74AE867326C05F45587171A509B94BADD1C1866` | `SukaDaKakogoHuya__SukaDaKakogoHuya__00612F05` | Патчит `HumanoidProfileEditor`, расширяет/меняет выбор species и вызывает `SetSpecies`/update pickers; bypass ограничений создания персонажа. |
-| `SuperGovnoWare.dll` | Malware/PUP | PUP: opens external URL | `435329C41AA1CC63A9A674D6FB8AA9CB9AE94C56408669BFA92AFB56F5D6F5F9` | `SuperGovnoWare__SuperGovnoWare__435329C4` | Патч вызывает `Process.Start` с внешним URL. Даже если это выглядит как prank, это нежелательный запуск внешнего процесса/браузера. |
-| `UpNoOverlay.dll` | Safe | Abuse: visual bypass | `37FDC0BABC8A4BFBCB5E7A8C18BC4736332258E8D379A6E6C8BAEF4298C97C1A` | `UpNoOverlay__UpNoOverlay__37FDC0BA` | Расширенный visual bypass: отключает damage/drunk/rainbow/blind/blurry/flash overlay, occlusion depth, smoke visuals; объединяет несколько no-overlay/no-FOV функций. |
-| `Zazi4kaMod_1.dll` | Safe | Abuse: admin description leak | `91BCD5C2FCDFC031122AB066F05D8EE2D5606EE5DD20F244075CF806A3A72D71` | `Zazi4kaMod_1__Zazi4kaMod__91BCD5C2` | Патчит `EntityMenuElement.GetEntityDescription` и подставляет `GetEntityDescriptionAdmin`, раскрывая админское описание сущностей обычному клиенту. |
+- `Reports/external_repositories.csv`
+- `Reports/external_forks.csv`
+- `Reports/external_commits.csv`
+
+## Categorized Sample Matrix
+
+`Hash8` is the first eight characters of SHA256. Use `Signatures/patch_matrix.csv` and `Signatures/hashes.sha256` for full hashes.
+
+### User-Device Malware, PUP, And High-Risk Stealth
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `Mods/Kaban.cc.dll` | `3E6500CD` | Malware | Abuse + RAT/C2/spyware | `Kaban.cc__Kaban.cc__3E6500CD` | Full RAT/cheat suite: WebView2/ImGui UI, ESP, aimbot, automation, anti-debug, anti-dump, anti-VM, assembly/type/component hiding, HWID/license logic, telemetry, screenshot capture, data collection, and Socket.IO C2 command handling. |
+| `CerbFix/CerberusWareV3.dll` | `62D9C8E3` | Malware | Abuse + anti-detect + ESP/aimbot suite | `CerberusWareV3__CerberusWareV3__62D9C8E3` | Large cheat suite with ImGui UI, anticheat system/event/log blockers, assembly/type/component hiding, fullbright/FOV bypass, storage and implant viewers, antag detection, aim helpers, spam/ahelp automation, screenshot overlay hiding, external translation HTTP calls, and AppData config/state files. |
+| `AntiCheatBypass.dll` | `C1457D01` | Safe | Abuse: anti-cheat/anti-detect bypass | `AntiCheatBypass__ClassLibrary1__C1457D01` | Obfuscated Cerberus anti-AC module. Static review found Harmony patches for `ReflectionManager.FindAllTypes`, `EntitySystemManager.GetEntitySystemTypes`, assembly enumeration, IoC-related filtering, and `Type.GetType`, hiding suspicious names/types from local checks. |
+| `SunriseObhod14.dll` | `1299BDD4` | Safe | Abuse: role verification / anti-detect bypass | `SunriseObhod14__SunriseObhod14__1299BDD4` | Heavily obfuscated sample with `SuppressIldasm`, encrypted string/resource logic, Harmony target methods against `RoleVerificationClient`, and metadata-hiding style. No obvious user-device C2 was found in this quick static pass, but the anti-detect role-verification bypass risk is high. |
+| `FireStationBypass.dll` | `36438BFC` | Safe | Abuse: anti-cheat/anti-detect bypass | `FireStationBypass__FireStationBypass__36438BFC` | Patches `MelonityVerificationClient`, forges clean verification responses, and hides `Harmony`, `Subverter`, `Marsey`, `Sedition`, and `Ware` type lookups. |
+| `photoTroll.dll` | `BB32043E` | Safe | Abuse: screenshot/capture tampering | `photoTroll__photoTroll__BB32043E` | Patches `CaptureSystem.RequestCaptureScreen`; when `Marsey/Mods/photoTroll/image.png` exists, it sends a fake `CaptureScreenResponseEvent` with that image and suppresses the original capture request. |
+| `SuperGovnoWare.dll` | `435329C4` | Malware/PUP | PUP: opens external URL | `SuperGovnoWare__SuperGovnoWare__435329C4` | Invokes an external URL through process launch behavior. Even if intended as a prank, it is unwanted process/browser launch behavior. |
+| `fayliki dlya bistrogo vzyatiya prof gosta.dll` | `20F35AD8` | Unknown | Unknown native/non-managed | none | 440-byte non-managed file. `AssemblyName.GetAssemblyName` reports unknown file format; not classifiable by managed .NET review. |
+
+### Admin, Console, Permission, And Information Bypass
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `AdminPatch.dll` | `5956B7AD` | Safe | Abuse: admin permission bypass | `AdminPatch__AdminPatch__5956B7AD` | Forces local admin checks such as `CanCommand`, `CanScript`, `CanAdminMenu`, `CanAdminPlace`, and `IsActive`; also replaces entity descriptions with admin descriptions. |
+| `patches/AdminPatch.dll` | `6E40E079` | Safe | Abuse: admin and console permission bypass | `AdminPatch__AdminPatch__6E40E079` | Newer admin patch build. Adds/keeps forced `ClientAdminManager` permissions, console `CanExecute`, `CanSay`, and admin entity description replacement. |
+| `CommandPermissionPatch.dll` | `FA4C8C41` | Safe | Abuse: command permission bypass | `CommandPermissionPatch__CommandPermissionPatch__FA4C8C41` | Harmony-postfixes `Robust.Client.Console.ClientConsoleHost.CanExecute` and forces command execution permission to true. |
+| `Zazi4kaMod_1.dll` | `91BCD5C2` | Safe | Abuse: admin description leak | `Zazi4kaMod_1__Zazi4kaMod__91BCD5C2` | Patches entity menu description lookup and substitutes `GetEntityDescriptionAdmin`, exposing admin-only entity descriptions to the client. |
+| `fullhud.dll` | `77AFC8A6` | Safe | Abuse: HUD/status info bypass | `fullhud__superhudoverlay__77AFC8A6` | Patches HUD/status icon paths to expose extra job/status information normally unavailable to normal players. |
+| `HudOverlaysPatch.dll` | `389A17AE` | Safe | Abuse: HUD/status info bypass | `HudOverlaysPatch__HudOverlaysPatch__389A17AE` | Similar to `fullhud`; adds or exposes extra overlay components/icons. |
+| `Chemical_Scan_Patch.dll` | `C5DE0A51` | Safe | Abuse: chemical information bypass | `Chemical_Scan_Patch__Chemical_Scan_Patch__C5DE0A51` | Adds `SolutionScannerComponent` to the local player on attach, enabling chemical scan-style information without normal item/role requirements. |
+| `Sander.dll` | `B6D170E6` | Safe | Abuse: ESP/search/implant/role overlays | `Sander__Sander__B6D170E6`; source: `MelvinMod/Sander` | Source-visible overlay/search mod. Adds item search, implant display, coordinate markers, syndicate/pirate labels, sound subtitles, footsteps, fullbright/shadow/FOV toggles, and a target-selection aimbot overlay. |
+| `BBT.Ware.dll` | `6D3B2690` | Safe | Abuse: HUD/ESP/admin bypass/visual bypass | `BBT.Ware__BBT.Ware__6D3B2690` | Cheat/HUD/ESP framework with local admin bypass, entity descriptions, health/job/criminal/mindshield/syndicate icons, name overlay, no-FOV/no-overlay, smoke/foam/fov controls, and menu UI. No direct user-device malware indicators were found in this SHA. |
+| `Based.dll` | `70B16B98` | Safe | Abuse: cheat framework/admin bypass/ESP | `Based__Based__70B16B98` | Cheat framework with local admin checks bypassed, assembly hiding through reflection manager paths, fullbright/subfloor/job overlay, visual bypasses, UI, and aimbot via predictive attack events. |
+| `FreeOverlay.dll` | `15CB78F7` | Safe | Abuse: ESP/overlay | `FreeOverlay__ClassLibrary1__15CB78F7` | Adds an overlay drawing entity names/statuses and local combat indicators, providing ESP-like information. |
+| `GhostPatch.dll` | `CA3CCA8F` | Safe | Abuse: ghost visibility bypass | `GhostPatch__GhostPatch__CA3CCA8F` | Patches `GhostSystem` to force ghost visibility and keep ghost sprite/layers visible after startup, attach, detach, and state changes. |
+
+### Visual Limitation Bypass
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `DODPatch.dll` | `465FF6E5` | Safe | Abuse: visual bypass | `DODPatch__DODPatch__465FF6E5` | Blocks `Clyde.DrawOcclusionDepth`, disabling depth/occlusion rendering and related visual limitations. |
+| `DODPatch.dll` | `359EBE88` | Safe | Abuse: visual bypass | `DODPatch__DODPatch__359EBE88` | New build of the occlusion-depth bypass using reflected `Robust.Client.Graphics.Clyde.Clyde` lookup. |
+| `FlashPatch.dll` | `458DA839` | Safe | Abuse: visual bypass | `FlashPatch__FlashPatch__458DA839` | Prefix skips `Content.Client.Flash.FlashOverlay.Draw`, disabling flash effects. |
+| `FlashPatch.dll` | `A3B1D3F8` | Safe | Abuse: visual bypass | `FlashPatch__FlashPatch__A3B1D3F8` | New reflected build of the flash overlay disabler. |
+| `FoamControll.dll` | `4A4FBE36` | Safe | Abuse: visual bypass | `FoamControll__FoamControll__4A4FBE36` | Adds command/CVar control for foam transparency, reducing a normal visual obstacle. |
+| `LightDisabler.dll` | `091466FF` | Safe | Abuse: fullbright/no-FOV | `LightDisabler__LightDisabler__091466FF` | Blocks `Clyde.ApplyFovToBuffer` and `Clyde.DrawLightsAndFov`, producing fullbright/no-FOV behavior. |
+| `NoOverlay.dll` | `EF47584C` | Safe | Abuse: visual bypass | `NoOverlay__NoOverlay__EF47584C` | Blocks flash, blind, blurry, temporary blindness, and eye damage paths. |
+| `OverlaysPatch_1.dll` | `2D905D35` | Safe | Abuse: visual bypass | `OverlaysPatch_1__OverlaysPatch__2D905D35` | Simplified overlay bypass for drunk, rainbow, blind, and blurry overlays. |
+| `OverlaysPatch.dll` | `A8C1E6C1` | Safe | Abuse: visual bypass | `OverlaysPatch__OverlaysPatch__A8C1E6C1` | More complete overlay bypass for drunk, rainbow, blind, and blurry overlays. |
+| `patches/OverlaysPatch.dll` | `EF514ED6` | Safe | Abuse: visual bypass | `OverlaysPatch__OverlaysPatch__EF514ED6` | New v2 build that postfixes overlay pre-draw checks for drunk, rainbow, blurry, and blind overlays. |
+| `SmokePatch.dll` | `48ECB1F9` | Safe | Abuse: visual bypass | `SmokePatch__SmokePatch__48ECB1F9` | Prefix skips smoke visualizer rendering. Metadata label is misleading and still says flash overlay disabler. |
+| `Robusto_1.dll` / `Robusto.dll` | `5AAF4029` | Safe | Abuse: visual bypass | `Robusto_1__Robusto__5AAF4029` | Disables FOV, light/shadows, stealth shader, drunk/rainbow/blind/blurry/flash overlays. |
+| `UpNoOverlay.dll` | `37FDC0BA` | Safe | Abuse: visual bypass | `UpNoOverlay__UpNoOverlay__37FDC0BA` | Expanded visual bypass: damage, drunk, rainbow, blind, blurry, flash, occlusion depth, and smoke visuals. |
+| `patches/UpNoOverlay.dll` | `50B1E84D` | Safe | Abuse: visual bypass | `UpNoOverlay__UpNoOverlay__50B1E84D` | New build disabling damage, drunk, rainbow, blurry, blind, flash, and Clyde occlusion-depth rendering. |
+| `GYK3h5m.dll` | `498502F3` | Safe | Abuse: no-FOV/no-overlay/no-flash | `GYK3h5m__NewRobustFix__498502F3` | Obscure file name; assembly is `NewRobustFix`. Targets drunk, rainbow, blurry, blind, flash, and Clyde depth methods. |
+
+### Spam, Chat, AHelp, And Action Abuse
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `AdminExploit.dll` | `8748E9EE` | Safe | Abuse: chat spam | `AdminExploit__TextHelper__8748E9EE` | Registers `TakeAdmin`; visible behavior is fast infinite `say` spam with an ASCII banner and config file creation, not actual admin privilege acquisition. |
+| `AdminSliver.dll` | `F8831DE1` | Safe | Abuse: mass admin actions/ahelp spam | `AdminSliver__AdminSliver__F8831DE1` | Registers commands such as `SlivBanAll`, `SlivKickAll`, `SlivKillAll`, `SlivAhelp`, and `SlivPlayerList`; uses admin systems, console commands, and ahelp/Bwoink paths for mass disruption. |
+| `AHelpBomber.dll` | `9940328D` | Safe | Abuse: ahelp spam | `AHelpBomber__AhelpBomber__9940328D` | `ahelpbomber` sends ahelp messages in a tight loop with roughly 10 ms delay through `BwoinkSystem.Send`. |
+| `HRP_Spam_Patch.dll` | `B2F73069` | Safe | Abuse: roleplay action spam | `HRP_Spam_Patch__HRP_Spam_Patch__B2F73069` | Adds `starthrpspam` and `stophrpspam`; repeatedly executes `me` commands for heartbeat, blinking, and breathing loops. |
+| `Smart_Spam_Patch.dll` | `61EAC9C1` | Safe | Abuse: chat spam | `Smart_Spam_Patch__SimpleCommand__61EAC9C1` | Adds `startspam` and `editspam`; configurable repeated `say` spam with message count and delay. |
+| `SpamMod.dll` | `3544E2EC` | Safe | Abuse: spam/anti-spam evasion | `SpamMod__SpamPatch__3544E2EC` | Adds `spamprotect`; reads `Marsey/Config/SpamText.txt` and sends repeated radio-style messages with randomized suffixes intended to bypass anti-spam filters. |
+| `jerk.dll` | `916B0BD4` | Safe | Abuse: action spam/crash-like behavior | `jerk__jerk__916B0BD4` | Contains `JerkCrash`, which repeatedly invokes hand UI clicks while hands are free; may be used for spam, desync, or crash-like behavior. |
+
+### Network, UI, Economy, Role, And Gameplay Exploit Helpers
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `CMExploit.dll` | `01149641` | Safe | Abuse: forged UI/network action | `CMExploit__CMExploit__01149641` | `cmexploit` forges a xeno evolution UI message with a selected prototype id through reflected `SharedUserInterfaceSystem.SendUiMessage`. |
+| `ForceListing_1.dll` / `ForceListing.dll` | `AEBE1B62` | Safe | Abuse: purchase restriction bypass | `ForceListing_1__ForceListing__AEBE1B62` | Prefixes `StoreListingControl` constructor and forces `canBuy = true`, bypassing UI purchase restrictions. |
+| `FrontierExploit.dll` | `0BE2E889` | Safe | Abuse: forged economy update | `FrontierExploit__FrontierExploit__0BE2E889` | Command changes a selected lobby character `BankBalance` and sends `MsgUpdateCharacter` to the server. |
+| `NetLogger.dll` | `3ED27194` | Safe | Abuse: packet inspect/replay/modify | `NetLogger__NetLogger__3ED27194` | Patches network logging, shows SEND/RECV packets, stores recent messages, and provides UI for inspection, replay, and modified packet sending. |
+| `RRTBypass.dll` | `FB48568C` | Safe | Abuse: ghost role request restriction bypass | `RRTBypass__RRTBypass__FB48568C` | Postfixes `GhostRoleRulesWindow.FrameUpdate` and forces the request button `Disabled` property to false. |
+| `GodMode Exploit.dll` | `258F3C79` | Safe | None/inert metadata | `GodMode_Exploit__GodMode_Exploit__258F3C79` | Despite the file name, static review found only `SubverterPatch` metadata and assembly info. No command, patch target, system, or runtime logic was found. |
+| `somth.dll` | `167A5201` | Safe | Abuse: combat stat cheat | `somth__somth__167A5201` | Harmony-postfixes `MeleeWeaponComponent` and forces `AttackRate = 99f`. |
+| `SukaDaKakogoHuya.dll` | `00612F05` | Safe | Abuse: character/species restriction bypass | `SukaDaKakogoHuya__SukaDaKakogoHuya__00612F05` | Patches `HumanoidProfileEditor`, expands/changes species selection, and invokes `SetSpecies`/picker updates. |
+| `InstantPickup.dll` | `3668155D` | Safe | Abuse: input/action automation | `InstantPickup__InstantPickup__3668155D` | Patches item hand interaction to pick up directly, redirects pickup verb execution, and intercepts smart backpack/belt hotkeys to pull the last stored item from storage through predictive storage UI events. |
+
+### Modding Frameworks, Runtime Script Bridges, And Hooking UI
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `Lua14.dll` | `6360ECF1` | Safe | Dual-use: runtime patch scripting | `Lua14__Lua14__6360ECF1` | Loads zip-based Lua mods from a `LuaMods` folder, exposes reflection and Harmony patch APIs to Lua, and registers `lua14.loadstring`. Powerful modding surface with high abuse potential if untrusted scripts are present. |
+| `OpenHook.dll` | `6F610E6C` | Safe | Dual-use: ImGui/hooking framework | `OpenHook__OpenWare__6F610E6C` | Early/debug OpenWare build. Hooks Robust rendering/input, creates an ImGui overlay, and provides menu/input bridge infrastructure. Mainly a loader/UI framework by itself. |
+| `OpenWare.dll` | `AFAF78C7` | Safe | Dual-use: ImGui/hooking framework | `OpenWare__OpenWare__AFAF78C7` | Release OpenWare build. Hooks `Clyde.GLContextWindow.SwapAllBuffers`, bridges keyboard/mouse/SDL text input into ImGui, blocks game binds while overlay captures input, and shows a debug overlay with placeholder actions. |
+| `RotatePath.dll` | `4395DA06` | Safe | None/inert utility | `RotatePath__RotatePath__4395DA06` | `spin on/off` changes a static flag, but no code was found that applies rotation. Appears incomplete or inert. |
+| `Rethemer.dll` | `7E41D3FA` | Safe | Cosmetic | `Rethemer__Rethemer__7E41D3FA` | Cosmetic style transpiler for `StyleNano` and `MenuButton`; changes stylesheet/menu theme to a Marsey-style variant. |
+| `AhelpNot.dll` | `3ABB56C2` | Safe | None/inert | `AhelpNot__AhelpNot__3ABB56C2` | Inert/incomplete Subverter metadata sample. No command, `PatchAll`, AHelp/Bwoink hook, popup/sound suppression, or runtime logic was found in this SHA. |
+
+### Dependencies And Build Artifacts
+
+| Item | Hash8 | User Verdict | Game/Server Risk | Decompiled/source reference | Defensive summary |
+|---|---:|---|---|---|---|
+| `Lidgren.Network.dll` | `25A1CBC6` | Safe | Dependency | `Lidgren.Network__Lidgren.Network__25A1CBC6` | Third-party Lidgren networking library. No patch behavior by itself. |
+| `Mods/SpaceWizards.Lidgren.Network.dll` | `3A9D41BB` | Safe | Dependency | `SpaceWizards.Lidgren.Network__SpaceWizards.Lidgren.Network__3A9D41BB` | Space Wizards fork/dependency for Lidgren networking. |
+| `Serilog.dll` | `BA73B4BF` | Safe | Dependency | `Serilog__Serilog__BA73B4BF` | Standard logging dependency. |
+| `Mods/Newtonsoft.Json.dll` | `A28C251D` | Safe | Dependency | `Newtonsoft.Json__Newtonsoft.Json__A28C251D` | JSON dependency. |
+| `Mods/Hexa.NET.ImGui.Backends.dll` | `A8AC0B89` | Safe | Dependency | `Hexa.NET.ImGui.Backends__Hexa.NET.ImGui.Backends__A8AC0B89` | ImGui backend dependency. |
+| `Mods/Hexa.NET.ImGui.dll` | `4E73425C` | Safe | Dependency | `Hexa.NET.ImGui__Hexa.NET.ImGui__4E73425C` | ImGui bindings dependency. |
+| `Mods/HexaGen.Runtime.dll` | `DEDAFE0C` | Safe | Dependency | `HexaGen.Runtime__HexaGen.Runtime__DEDAFE0C` | Hexa-generated runtime dependency. |
+| `Mods/KeraLua.dll` | `A0EC77CE` | Safe | Dependency | `KeraLua__KeraLua__A0EC77CE` | Lua runtime binding dependency. |
+| `Mods/NLua.dll` | `29AF6AF4` | Safe | Dependency | `NLua__NLua__29AF6AF4` | Lua integration dependency. |
+| `Mods/Microsoft.Web.WebView2.Core.dll` | `2B999D17` | Safe | Dependency | `Microsoft.Web.WebView2.Core__Microsoft.Web.WebView2.Core__2B999D17` | WebView2 dependency used by `Kaban.cc` for UI. |
+| `Mods/Microsoft.Web.WebView2.Wpf.dll` | `B6A200F3` | Safe | Dependency | `Microsoft.Web.WebView2.Wpf__Microsoft.Web.WebView2.Wpf__B6A200F3` | WebView2 WPF dependency. |
+| `Mods/MinHook.NET.dll` | `75DCAF80` | Safe | Dual-use dependency | `MinHook.NET__MinHook.NET__75DCAF80` | Hooking dependency. Harmless as a library, but dual-use and present beside high-risk samples. |
+| `Mods/SocketIOClient.dll` | `8D37BA5C` | Safe | Dependency used by malware | `SocketIOClient__SocketIOClient__8D37BA5C` | Socket.IO dependency used by `Kaban.cc` C2 logic. |
+| `Mods/System.Drawing.Common.dll` | `96502314` | Safe | Dependency used by screenshot code | `System.Drawing.Common__System.Drawing.Common__96502314` | .NET drawing dependency; associated with screenshot/image code in `Kaban.cc`. |
+| `Mods/PresentationCore.dll` | `83B1D7D6` | Safe | Dependency | `PresentationCore__PresentationCore__83B1D7D6` | WPF dependency. |
+| `Mods/PresentationFramework.dll` | `40FEE697` | Safe | Dependency | `PresentationFramework__PresentationFramework__40FEE697` | WPF dependency. |
+| `Mods/System.IO.Packaging.dll` | `08E66248` | Safe | Dependency | `System.IO.Packaging__System.IO.Packaging__08E66248` | .NET packaging dependency. |
+| `Mods/System.Windows.Forms.dll` | `2292F948` | Safe | Dependency | `System.Windows.Forms__System.Windows.Forms__2292F948` | Windows Forms dependency. |
+| `Mods/System.Xaml.dll` | `29E6A408` | Safe | Dependency | `System.Xaml__System.Xaml__29E6A408` | XAML dependency. |
+| `Mods/UIAutomationProvider.dll` | `12920B58` | Safe | Dependency | `UIAutomationProvider__UIAutomationProvider__12920B58` | UIAutomation dependency. |
+| `Mods/UIAutomationTypes.dll` | `FDC014EC` | Safe | Dependency | `UIAutomationTypes__UIAutomationTypes__FDC014EC` | UIAutomation dependency. |
+| `Mods/WindowsBase.dll` | `181153DF` | Safe | Dependency | `WindowsBase__WindowsBase__181153DF` | WPF/WindowsBase dependency. |
+| `Mods/WinRT.Runtime.dll` | `2238FECF` | Safe | Dependency | `WinRT.Runtime__WinRT.Runtime__2238FECF` | WinRT runtime dependency. |
+| `Mods/WebView2Loader.dll` | `8427B1FC` | Safe | Native dependency | none | Native WebView2 loader. Not managed .NET; tracked as dependency. |
+
 ## Notable High-Risk Groups
 
-### User-device malware
+### User-Device Malware
 
-Mods/Kaban.cc.dll is the highest-risk user-device sample in this set. The static review found indicators associated with C2, telemetry, screenshot/data collection, HWID tracking, anti-debug, anti-dump, anti-VM logic, WebView2 UI, Socket.IO usage, and many gameplay automation features.
+`Kaban.cc.dll` remains the highest-confidence user-device malware sample in the baseline set because it combines C2, telemetry, screenshot/data collection, HWID tracking, anti-analysis logic, and extensive gameplay automation.
 
-SuperGovnoWare.dll is marked Malware/PUP because it invokes an external URL through process launch behavior.
+`CerberusWareV3.dll` is now the largest newly reviewed high-risk sample. It does not show the same clear Socket.IO RAT pattern as `Kaban.cc` in this quick pass, but it does contain aggressive anti-detect, screenshot/capture-related hiding, AppData config persistence, external HTTP translation calls, ESP/aimbot overlays, and spam automation. It should be treated as a high-risk cheat suite.
 
-ayliki dlya bistrogo vzyatiya prof gosta.dll is marked Unknown because it is a small non-managed file and was not decompiled as a .NET assembly.
+### Anti-Detect And Verification Bypass
 
-### Server/game abuse
+`AntiCheatBypass.dll`, `SunriseObhod14.dll`, and `FireStationBypass.dll` are the most important anti-detect samples. They target local verification, type discovery, entity system discovery, assembly enumeration, role verification, and suspicious type/name filtering.
 
-Common abuse families in the set:
+### Server/Game Abuse
 
-- visual bypasses: flash, blindness, overlays, FOV, lighting, smoke/foam and occlusion changes;
-- HUD/ESP overlays: hidden role/status/job/entity information exposure;
-- permission bypasses: local admin/console permission checks forced open;
+Common abuse families in the reviewed set:
+
+- visual bypasses: flash, blindness, overlays, FOV, lighting, smoke/foam, and occlusion changes;
+- HUD/ESP overlays: hidden role/status/job/entity/storage/implant information exposure;
+- permission bypasses: local admin and console permission checks forced open;
 - packet tools: packet inspection, replay, or modification helpers;
-- spam/destructive admin helpers: ahelp bursts, mass action command strings;
-- anti-detect logic: verification response tampering and assembly/type hiding.
+- spam/destructive admin helpers: chat, ahelp, LOOC/OOC, `me`, and mass action command strings;
+- anti-detect logic: verification response tampering, assembly/type/component hiding, and screenshot/capture tampering;
+- modding frameworks: ImGui, Lua, Harmony, and reflection bridges that are not always malicious by themselves but materially lower the cost of abusive patches.
+
+## Important Limitations
+
+Static analysis can miss packed, obfuscated, staged, or environment-dependent behavior. Absence of a hit does not prove a file is safe.
+
+File names are not stable indicators. Different builds may use the same DLL name while having different behavior, and several samples in `DLLs/NEW` are renamed or rebuilt versions of older patches. Prefer SHA256, assembly metadata, static strings, and behavior notes when comparing reports.
+
+Dependency DLLs should not be blocked only by name without context. They may be legitimate libraries but still useful as correlation signals when found beside known abusive patch assemblies.
 
 ## Publication Notes
 
-The git repository intentionally excludes DLLs/ and Decompiled/. Keep raw samples in a private malware-analysis workspace, preferably isolated from normal user environments. Publish hashes and indicators when sharing with other defenders.
+The git repository intentionally excludes `DLLs/` and `Decompiled/`. Keep raw samples in a private malware-analysis workspace, preferably isolated from normal user environments. Publish hashes, indicators, and high-level behavior notes when sharing with other defenders.
